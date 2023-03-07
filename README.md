@@ -1,0 +1,2 @@
+# serverNode
+my first server
