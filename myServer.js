@@ -16,22 +16,33 @@ const value = [
 app.get('/get/:id', (req,res) => {
  	v=req.params.id
 	value[0]["nbre"]=v
-	var m = ["", "M", "MM", "MMM"]
-	var c = ["", "C", "CC", "CCC", "CD", "D",
-		"DC", "DCC", "DCCC", "CM "]
-	var x = ["", "X", "XX", "XXX", "XL", "L",
-		"LX", "LXX", "LXXX", "XC"]
-	var i = ["", "I", "II", "III", "IV", "V",
-		"VI", "VII", "VIII", "IX"]
-	var miliers=m[Math.floor(v / 1000)]
-	var centaines = c[Math.floor((v % 1000) / 100)]
-	var dizaines = x[Math.floor((v % 100) / 10)]
-	var unites = i[v % 10]
-	romain=miliers+centaines+dizaines+unites;
+	romain=convertToRoman(v)
 	value[0]["romain"]=romain
 	res.status(200).json(value);
-	console.log("return "+v+" get "+value[0]["romain"])
 })
+
+function convertToRoman(num){
+	var romain="";
+	var romanNumList={M:1000,CM:900,D:500,CD:400,C:100,XC:90,L:50,XL:40,X:10,IX:9,V:5,IV:4,I:1};
+	var a;
+
+	if(num<1 || num >3999)
+		return "Entrer un nbre entre 1 et 3999";
+	else
+	{
+		for(var key in romanNumList){
+			a = Math.floor(num/romanNumList[key])
+			if(a>=0)
+			{
+				for(var i=0;i<a;i++){
+					romain+=key
+				}
+			}
+			num=num % romanNumList[key]
+		}
+	}
+	return romain
+}
 /**
  * SSE =>
  * Event : type evenement
@@ -40,18 +51,7 @@ app.get('/get/:id', (req,res) => {
  * Retry : le delai de retransmission
  */
 app.get('/', (req,res) => {
-	var m = ["", "M", "MM", "MMM"]
-	var c = ["", "C", "CC", "CCC", "CD", "D",
-		"DC", "DCC", "DCCC", "CM "]
-	var x = ["", "X", "XX", "XXX", "XL", "L",
-		"LX", "LXX", "LXXX", "XC"]
-	var i = ["", "I", "II", "III", "IV", "V",
-		"VI", "VII", "VIII", "IX"]
-	var miliers=m[Math.floor(v / 1000)]
-	var centaines = c[Math.floor((v % 1000) / 100)]
-	var dizaines = x[Math.floor((v % 100) / 10)]
-	var unites = i[v % 10]
-	romain=miliers+centaines+dizaines+unites;
+	romain=convertToRoman(v)
 	value[0]["romain"]=romain
 	const intervalId = setInterval(() => {
 		res.write(`data: ${romain}\n\n`)
@@ -62,8 +62,6 @@ app.get('/', (req,res) => {
 		clearInterval(intervalId)
 		res.end()
 	})
-
-	console.log("return "+v+" get "+value[0]["romain"])
 })
 
 app.listen(8000, () => {
