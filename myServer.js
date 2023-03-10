@@ -1,11 +1,19 @@
 const express = require('express');
 const app = express();
+const EventEmitter=require('events')
+const parser=require('body-parser')
+
+app.use(parser.json())
+app.use(
+	parser.urlencoded({extended:true})
+)
 app.use((req, res, next) => {
 	res.setHeader('Access-Control-Allow-Origin', '*');
 	res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
 	res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
 	next();
 });
+const Stream=new EventEmitter();
 var v=0
 const value = [
 	{
@@ -51,18 +59,21 @@ function convertToRoman(num){
  * Retry : le delai de retransmission
  */
 app.get('/', (req,res) => {
-	romain=convertToRoman(v)
-	value[0]["romain"]=romain
-	const intervalId = setInterval(() => {
-		res.write(`data: ${romain}\n\n`)
-	}, 10000)
-	//res.status(200).json(value);
-	res.on('close', () => {
-		console.log('Client closed connection')
-		clearInterval(intervalId)
-		res.end()
-	})
+	console.log('Client connected')
+	res.setHeader('Content-Type', 'text/event-stream')
+	res.setHeader('Access-Control-Allow-Origin', '*')
+
+	Stream.on('push',function (data){
+		res.write('data: '+data+'\n\n')
+		}
+	);
+	setInterval(function (){
+		romain=convertToRoman(v)
+		value[0]["romain"]=romain
+		Stream.emit('push', romain)
+	},20000)
 })
+
 
 app.listen(8000, () => {
 	console.log("Serveur à l'écoute")
