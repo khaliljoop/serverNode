@@ -9,7 +9,9 @@
   "description": "server node",
   "main": "myServer.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "nodemon myServer.js",
+    "test": "jest",
+    "test-w": "jest --watchAll"
   },
   "repository": {
     "type": "git",
@@ -23,5 +25,8 @@
   "bugs": {
     "url": "https://github.com/khaliljoop/serverNode/issues"
   },
-  "homepage": "https://github.com/khaliljoop/serverNode#readme"
+  "homepage": "https://github.com/khaliljoop/serverNode#readme",
+  "devDependencies": {
+    "jest": "^29.5.0"
+  }
 }

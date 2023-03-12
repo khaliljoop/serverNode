@@ -1,20 +1,17 @@
-const express = require('express');
-const app = express();
-const EventEmitter=require('events')
-const parser=require('body-parser')
-
-app.use(parser.json())
-app.use(
-	parser.urlencoded({extended:true})
-)
+const conv=require('./converIntToRoman.js');
+const EventEmitter=require('events');
+const express =require('express');
+const Stream=new EventEmitter();
+let app=express()
 app.use((req, res, next) => {
 	res.setHeader('Access-Control-Allow-Origin', '*');
 	res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
 	res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
 	next();
 });
-const Stream=new EventEmitter();
-var v=0
+
+let v=0
+let romain=""
 const value = [
 	{
 		"nbre": 0,
@@ -22,58 +19,32 @@ const value = [
 	}
 ];
 app.get('/get/:id', (req,res) => {
+
  	v=req.params.id
 	value[0]["nbre"]=v
-	romain=convertToRoman(v)
+	romain=conv.convertToRoman(v)
 	value[0]["romain"]=romain
 	res.status(200).json(value);
 })
-
-function convertToRoman(num){
-	var romain="";
-	var romanNumList={M:1000,CM:900,D:500,CD:400,C:100,XC:90,L:50,XL:40,X:10,IX:9,V:5,IV:4,I:1};
-	var a;
-
-	if(num<1 || num >3999)
-		return "Entrer un nbre entre 1 et 3999";
-	else
-	{
-		for(var key in romanNumList){
-			a = Math.floor(num/romanNumList[key])
-			if(a>=0)
-			{
-				for(var i=0;i<a;i++){
-					romain+=key
-				}
-			}
-			num=num % romanNumList[key]
-		}
-	}
-	return romain
-}
 /**
- * SSE =>
- * Event : type evenement
- * Data : le message
- * ID : l'identifiant
- * Retry : le delai de retransmission
+ * SSE
  */
+
 app.get('/', (req,res) => {
 	console.log('Client connected')
 	res.setHeader('Content-Type', 'text/event-stream')
 	res.setHeader('Access-Control-Allow-Origin', '*')
-
 	Stream.on('push',function (data){
-		res.write('data: '+data+'\n\n')
+			res.write('data: '+data+'\n\n')
 		}
 	);
 	setInterval(function (){
-		romain=convertToRoman(v)
+		romain=conv.convertToRoman(value[0]["nbre"])
 		value[0]["romain"]=romain
 		Stream.emit('push', romain)
 	},20000)
-})
 
+})
 
 app.listen(8000, () => {
 	console.log("Serveur à l'écoute")
